@@ -72,10 +72,28 @@ var_names %>%
 
 
 
-
-
-
 # Solution
+library(tidyverse)
+set.seed(1234)
+
+# sample dfs
+data_0 <- tibble::tibble("X1" = sample(c(1, 2, 3, 4, NA_real_), 8, T),
+                         "X2" = sample(c(100, 200, 300, 400, NA_real_), 8, T),
+                         "X3" = sample(c("m", "f"), 8, T), 
+                         "tp" = "0") # timepoint
+data_1 <- tibble::tibble("X1" = sample(c(100, 200, 300, 400, NA_real_), 8, T),
+                         "X2" = sample(c("m", "f"), 8, T),
+                         "X3" = sample(c(1, 2, 3, 4, NA_real_), 8, T), 
+                         "tp" = "1")
+data_2 <- tibble::tibble("X3" = sample(c(1, 2, 3, 4, NA_real_), 8, T),
+                         "X4" = sample(c("m", "f"), 8, T), 
+                         "tp" = "2")
+
+# # create df with matching variable names
+# var_names <- tibble::tibble(real_name = c("var1", "var2_salary", "var3_gender"),
+#                             name_0 = c("X1", "X2", "X3"),
+#                             name_1 = c("X3", "X1", "X2"),
+#                             name_2 = c("X3", NA_character_, "X4"))
 
 # create df with matching variable names
 var_names <- 
@@ -84,7 +102,8 @@ var_names <-
                  data_1    = c("X3", "X1", "X2"),
                  data_2    = c("X3", NA_character_, "X4")) %>%
   pivot_longer(-to, names_to = "source", values_to = "from") %>% 
-  select(source, from, to)
+  select(source, from, to) %>% 
+  drop_na()
 
 
 data_list <- list(data_0 = data_0, data_1 = data_1, data_2 = data_2)
@@ -103,13 +122,11 @@ remapped <-
   mutate(mapping = map(source, ~filter(var_names, source == .))) %>% 
   hoist(mapping, from = "from", to = "to") %>% 
   mutate(output       = pmap(list(data, from, to), rename_cols),
-         data_table   = map2(data, from, table_cols, useNA = "always"),
-         output_table = map2(output, to, table_cols, useNA = "always"),
+         data_table   = map2(data, from, table_cols, useNA = "always"), #this line fails
+         output_table = map2(output, to, table_cols, useNA = "always"), # this is ok
          validate     = map2_lgl(data_table, output_table, identical))
 
 
 
-
-
-remapped %>% select(output) %>% unnest(cols = c(output))
+aa <- remapped %>% select(output) %>% unnest(cols = c(output))
 
