@@ -75,7 +75,7 @@ df %>%
             .funs = list(orig = ~.)) %>% 
   mutate(E30corr = strsplit(E30corr, split = ", ", fixed = TRUE)) %>% 
   pivot_longer(E30A:E30C) %>% 
-  mutate(value = case_when(is.na(E30corr) ~ value, 
+  mutate(value = case_when(is.na(E30corr_orig) ~ value, 
                            str_detect(E30corr_orig, name) ~ 1, 
                            TRUE ~ value)) %>%
   pivot_wider(names_from = name) %>% 
